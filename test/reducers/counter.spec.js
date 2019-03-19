@@ -2,7 +2,7 @@ import counter from '../../app/reducers/counter';
 import {
   INCREMENT_COUNTER,
   DECREMENT_COUNTER
-} from '../../app/actions/counter';
+} from '../../app/actions/fileLog';
 
 describe('reducers', () => {
   describe('counter', () => {
