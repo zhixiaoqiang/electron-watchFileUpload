@@ -1,6 +1,6 @@
 {
-  "name": "electron-react-boilerplate",
-  "productName": "ElectronReact",
+  "name": "electron-watch-file-upload",
+  "productName": "监听文件并上传",
   "version": "0.17.1",
   "description": "Electron application boilerplate based on React, React Router, Webpack, React Hot Loader for rapid application development",
   "scripts": {
@@ -262,7 +262,7 @@
     "devtron": "^1.4.0",
     "electron-debug": "^2.0.0",
     "electron-log": "^2.2.17",
-    "electron-updater": "^3.2.3",
+    "electron-updater": "^4.0.6",
     "form-data": "^2.3.3",
     "fs-extra": "^7.0.1",
     "history": "^4.7.2",
