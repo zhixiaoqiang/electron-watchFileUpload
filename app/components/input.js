@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import InputLabel from '@material-ui/core/InputLabel'
@@ -37,7 +38,7 @@ const Input = withStyles(theme => ({
 }))(InputBase);
 
 export default function (props) {
-  let { label, onChange, disabled, value } = props
+  const { label, onChange, disabled, value } = props
   return (
     <InputLabel htmlFor="age-customized-select" >
       {label}：
@@ -45,7 +46,7 @@ export default function (props) {
         value={value}
         disabled={disabled}
         onChange={onChange}
-      ></Input>
+      />
       {/* <TextField
         id="outlined-name"
         label="Name"

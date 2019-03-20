@@ -1,5 +1,6 @@
 import axios from 'axios'
-import adapters from 'axios/lib/adapters/http'
+// const adapters2 = require('axios/lib/adapters/http')
+axios.defaults.adapter = require('axios/lib/adapters/http')
 // function requestErrorMsg (desc) {
 //   store.dispatch.global.notify({
 //     message: '请求错误',
@@ -7,7 +8,16 @@ import adapters from 'axios/lib/adapters/http'
 //     description: desc
 //   })
 // }
+
+const errorMsgMap = {
+  404: '请求地址有误。',
+  500: '服务器错误。',
+  502: '网关错误。'
+}
+
 function transformReq (request) {
+  // console.warn('adapters2', adapters2);
+  // request.adapter = adapters2
   const data = request.params
   request.params = {
     t: Date.now()
@@ -16,9 +26,9 @@ function transformReq (request) {
     request.params['data'] = data || {}
   }
   if (request.method === 'post') {
-    request.data =
-      'data=' + encodeURIComponent(JSON.stringify(request.data || {}))
-    request.headers['Content-Type'] = 'application/x-www-form-urlencoded'
+    // request.data =
+    //   'data=' + encodeURIComponent(JSON.stringify(request.data || {}))
+    // request.headers['Content-Type'] = 'application/x-www-form-urlencoded'
   }
   return request
 }
@@ -38,23 +48,31 @@ function successRes ({data}) {
   return data.data
 }
 function errorRes (err) {
+  console.warn(err)
   if (err.code === 'ECONNABORTED') {
-    throw '请求超时'
+    const error = {
+      message: '请求超时',
+      code: err.code
+    }
+    throw error
   }
   if (err.response) {
-    throw errorMsgMap[err.response.status]
+    const error = {
+      message: errorMsgMap[err.response.status],
+      code: err.code
+    }
+    throw error
   } else {
     throw err.message
   }
-  throw err
+  // throw err
 }
-
-axios.defaults.adapter = adapters
 
 const instance = axios.create({
   timeout: 120000,
   headers: { Accept: '*/*' },
   withCredentials: true
+  // adapter: adapters2
 })
 instance.interceptors.request.use(transformReq)
 instance.interceptors.response.use(successRes, errorRes)
