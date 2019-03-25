@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React from 'react';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -8,7 +9,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 
 class AlertDialog extends React.Component {
   render() {
-    let { open = false, handleClose, children, title, onOk, okText } = this.props
+    const { open = false, handleClose, children, title, onOk, okText } = this.props
     return (
       <div>
         <Dialog

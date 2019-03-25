@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
@@ -24,6 +25,7 @@ const styles = theme => ({
 function SimpleTable(props) {
   const { classes, data } = props;
 
+  // eslint-disable-next-line prefer-const
   let rows = data && data.map((item, i) => ({
     i,
     ...item

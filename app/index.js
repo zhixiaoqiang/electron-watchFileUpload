@@ -1,9 +1,13 @@
 import React from 'react';
 import { render } from 'react-dom';
 import { AppContainer } from 'react-hot-loader';
+// import es6promise from 'es6-promise'
 import Root from './containers/Root';
 import { configureStore, history } from './store/configureStore';
 import './app.global.css';
+
+
+// es6promise.polyfill()
 
 const store = configureStore();
 

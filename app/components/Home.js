@@ -1,10 +1,15 @@
+/* eslint-disable class-methods-use-this */
+/* eslint-disable promise/always-return */
+/* eslint-disable react/prop-types */
 import React, { Component } from 'react'
 import { remote } from 'electron'
 import chokidar from 'chokidar'
+// import adapters from 'axios/lib/adapters/http'
 import fs from 'fs-extra'
 import FormData from 'form-data'
 import Button from '@material-ui/core/Button';
-import axios from '../utils/axios'
+// import axios from '../utils/axios'
+import rp from 'request-promise'
 import Table from './table';
 import Input from './input';
 import Modal from './modal';
@@ -21,94 +26,51 @@ export default class Home extends Component {
     this.watcher = null;
     this.showInLogFlag = false; // 是否显示在log中
   }
-  render() {
-    let { startDisabled, messageLogger, showStartModal, nickName } = this.state
-    let { fileLog } = this.props
-    return (
-      <div className={styles.container} data-tid="container">
-        <h1>监听文件变更后自动上传</h1>
-        <div>
-          <Input
-            label='花名'
-            value={nickName}
-            disabled={startDisabled}
-            onChange={(e) => this.setNickName(e.target.value)}
-          ></Input>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={(e) => this.startHandle(e)}
-            disabled={startDisabled}
-          >选择要监听的文件夹</Button>
-          <Button
-            variant="contained"
-            disabled={!startDisabled}
-            onClick={(e) => this.stopHandle(e)}
-          >停止监听</Button>
-          <Button
-            variant="contained"
-            disabled={!fileLog}
-            onClick={(e) => this.resetHandle(e)}
-          >重置消息</Button>
-        </div>
-        <span>{messageLogger}</span>
-        {fileLog && <Table data={fileLog}></Table>}
-
-        <Modal
-         title='提示'
-         open={!!showStartModal}
-         handleClose={() => this.setState({showStartModal: false})}
-         okText='我知道了'
-        >
-          请填写花名后再操作
-        </Modal>
-
-      </div>
-    )
-  }
 
   setNickName (nickName) {
     this.setState({nickName})
   }
 
   StartWatcher = (path) => {
-    let _this = this
-    localStorage.setItem('nickName', this.state.nickName)
+    // Must use destructuring state assignment
+    const curThis = this
+    const { nickName } = this.state
+    localStorage.setItem('nickName', nickName)
     this.setState({
       startDisabled: true,
       messageLogger: '扫描中, 请等待 ...'
     })
-  
-    _this.watcher = chokidar.watch(path, {
+    curThis.watcher = chokidar.watch(path, {
+        // eslint-disable-next-line no-useless-escape
         ignored: /[\/\\]\./,
         persistent: true
     });
   
     const onWatcherReady = () => {
         console.info('From here can you check for real changes, the initial scan has been completed.');
-        _this.showInLogFlag = true;
-        _this.setState({
+        curThis.showInLogFlag = true;
+        curThis.setState({
           showStop: true,
           messageLogger: `正在监听 ${path} 文件夹`
         })
     }
   
-    _this.watcher
+    curThis.watcher
     .on('add', (path, event) => {
-        if(_this.showInLogFlag){
-          _this.addLog({
+        if(curThis.showInLogFlag){
+          curThis.addLog({
             typeStr: '新增文件',
             path,
             type: 'new'
           })
-          _this.uploadFile(path)
+          curThis.uploadFile(path)
         }
     })
     .on('addDir', (path) => {
           console.log('Directory', path, 'has been added');
   
-          if(_this.showInLogFlag){
-              _this.addLog({
+          if(curThis.showInLogFlag){
+              curThis.addLog({
                 typeStr: '新增文件夹',
                 path,
                 type: 'new'
@@ -118,8 +80,8 @@ export default class Home extends Component {
     .on('change', (path) => {
         console.log('File', path, 'has been changed');
   
-        if(_this.showInLogFlag){
-            // _this.addLog({
+        if(curThis.showInLogFlag){
+            // curThis.addLog({
             //   typeStr: '文件变更',
             //   path,
             //   type: 'change'
@@ -129,8 +91,8 @@ export default class Home extends Component {
     .on('unlink', (path) => {
         console.log('File', path, 'has been removed');
   
-        if(_this.showInLogFlag){
-            // _this.addLog({
+        if(curThis.showInLogFlag){
+            // curThis.addLog({
             //   typeStr: '删除文件',
             //   path,
             //   type: 'delete'
@@ -140,8 +102,8 @@ export default class Home extends Component {
     .on('unlinkDir', (path) => {
         console.log('Directory', path, 'has been removed');
   
-        if(_this.showInLogFlag){
-            _this.addLog({
+        if(curThis.showInLogFlag){
+            curThis.addLog({
               typeStr: '删除文件夹',
               path,
               type: 'delete'
@@ -151,8 +113,8 @@ export default class Home extends Component {
     .on('error', (error) => {
         console.log('Error happened', error);
   
-        if(_this.showInLogFlag){
-            _this.addLog({
+        if(curThis.showInLogFlag){
+            curThis.addLog({
               typeStr: '文件错误',
               path,
               type: 'delete'
@@ -168,7 +130,7 @@ export default class Home extends Component {
   }
   
   startHandle (e) {
-    let { nickName } = this.state
+    const { nickName } = this.state
     if (!nickName) {
       return this.setState({
         showStartModal: true
@@ -202,22 +164,23 @@ export default class Home extends Component {
     }
   }
   
-  resetHandle (e) {
+  resetHandle () {
     this.props.resetFileLog()
   }
   
   // 添加日志
   addLog ({ typeStr, type, path }) {
+    // eslint-disable-next-line prefer-const
     let { setFileLog } = this.props
-    let curLog = {
+    const curLog = {
       text: path,
       state: typeStr,
       type,
       color: 'green'
     }
-    if (type == 'delete') {
+    if (type === 'delete') {
       curLog.color = 'red'
-    } else if (type == "change"){
+    } else if (type === "change"){
       curLog.color = 'red'
     } else {
       curLog.color = 'green'
@@ -226,22 +189,174 @@ export default class Home extends Component {
   }
   
   uploadFile (path) {
-    let { nickName } = this.state
-    let { setFileLogResult } = this.props
-    let form = new FormData()
-    let file = fs.createReadStream(path)
+    const { nickName } = this.state
+    const { setFileLogResult } = this.props
+    const form = new FormData()
+    const file = fs.createReadStream(path)
+    // 注意：axios参数传form rp参数产formData
     form.append('file', file)
     form.append('nickName', nickName)
-    axios({
-        method: 'post',
-        url: 'http://zdocker3.dian.so/invoice/validate/upload',
-        headers: form.getHeaders(),
-        data: form,
-    }).then(res => {
-        console.warn(res)
-        setFileLogResult({path})
-    }).catch(err => {
-      setFileLogResult({path, message: err.message})
-    })
+    const formData = {
+      file,
+      nickName
+    }
+    setFileLogResult({path, message: '发票识别中'})
+    rp({
+      method: 'POST',
+      headers: form.getHeaders(),
+      uri: 'http://zdev.dian.so/invoice/validate/autoUpload',
+      formData,
+      json: true
+    }).then(res => this.successRes(
+        res,
+        result => setFileLogResult({path, message: result}),
+        result => setFileLogResult({path, message: result.message}))
+      // this.successRes(res)
+      // .then(result => {
+      //   setFileLogResult({path, message: result})
+      // })
+      // .catch(result => {
+      //   setFileLogResult({path, message: result.message})
+      // })
+    )
+    .catch(err => this.errorRes(err, result => setFileLogResult({path, message: result.message}))
+      // this.errorRes(err).catch(result => {
+      //   setFileLogResult({path, message: result.message})
+      // })
+    )
+
+    // axios({
+    //     method: 'post',
+    //     url: 'http://zdev.dian.so/invoice/validate/autoUpload',
+    //     headers: form.getHeaders(),
+    //     data: form,
+    // }).then(res => {
+    //   console.warn(res)
+    //   return setFileLogResult({path})
+    // }).catch(err => {
+    //   console.warn(err)
+    //   setFileLogResult({path, message: err.message})
+    // })
+  }
+
+  successRes (data, successCallBack, failCallBack) {
+    const defaultError = {
+      message: '未知错误',
+      code: -1
+    }
+    if (!data) failCallBack(defaultError)
+    if (!data.success) {
+      const error = {
+        message: data.msg,
+        code: data.state
+      }
+      failCallBack(error)
+    }
+    successCallBack(data.data) 
+    // return new Promise((resolve, reject) => {
+    //   const defaultError = {
+    //     message: '未知错误',
+    //     code: -1
+    //   }
+    //   if (!data) reject(defaultError)
+    //   if (!data.success) {
+    //     const error = {
+    //       message: data.msg,
+    //       code: data.state
+    //     }
+    //     reject(error)
+    //   }
+    //   resolve(data.data) 
+    // })
+  }
+
+  errorRes (err, failCallBack) {
+    const errorMsgMap = {
+      404: '请求地址有误。',
+      500: '服务器错误。',
+      502: '网关错误。'
+    }
+
+    if (err.code === 'ECONNABORTED') {
+      const error = {
+        message: '请求超时',
+        code: err.code
+      }
+      failCallBack(error)
+    }
+    if (err.response) {
+      const error = {
+        message: errorMsgMap[err.response.status],
+        code: err.code
+      }
+      failCallBack(error)
+    } else {
+      failCallBack(err.message)
+    }
+
+    // return new Promise((resolve, reject) => {
+    //   if (err.code === 'ECONNABORTED') {
+    //     const error = {
+    //       message: '请求超时',
+    //       code: err.code
+    //     }
+    //     reject(error)
+    //   }
+    //   if (err.response) {
+    //     const error = {
+    //       message: errorMsgMap[err.response.status],
+    //       code: err.code
+    //     }
+    //     reject(error)
+    //   } else {
+    //     reject(err.message)
+    //   }
+    // })
+  }
+
+  render () {
+    const { startDisabled, messageLogger, showStartModal, nickName } = this.state
+    const { fileLog } = this.props
+    return (
+      <div className={styles.container} data-tid="container">
+        <h1>监听文件变更后自动上传</h1>
+        <div>
+          <Input
+            label='花名'
+            value={nickName}
+            disabled={startDisabled}
+            onChange={(e) => this.setNickName(e.target.value)}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={(e) => this.startHandle(e)}
+            disabled={startDisabled}
+          >选择要监听的文件夹</Button>
+          <Button
+            variant="contained"
+            disabled={!startDisabled}
+            onClick={(e) => this.stopHandle(e)}
+          >停止监听</Button>
+          <Button
+            variant="contained"
+            disabled={!fileLog}
+            onClick={(e) => this.resetHandle(e)}
+          >重置消息</Button>
+        </div>
+        <span>{messageLogger}</span>
+        {fileLog && <Table data={fileLog} />}
+
+        <Modal
+         title='提示'
+         open={!!showStartModal}
+         handleClose={() => this.setState({showStartModal: false})}
+         okText='我知道了'
+        >
+          请填写花名后再操作
+        </Modal>
+
+      </div>
+    )
   }
 }
