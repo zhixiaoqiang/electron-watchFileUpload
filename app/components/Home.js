@@ -7,6 +7,7 @@ import fs from 'fs-extra'
 import FormData from 'form-data'
 import Button from '@material-ui/core/Button';
 import axios from '../utils/axios'
+import rp from 'request-promise'
 import Table from './table';
 import Input from './input';
 import Modal from './modal';
@@ -190,20 +191,86 @@ export default class Home extends Component {
     const { setFileLogResult } = this.props
     const form = new FormData()
     const file = fs.createReadStream(path)
+    // 注意：axios参数传form rp参数产formData
     form.append('file', file)
     form.append('nickName', nickName)
-    axios({
-        method: 'post',
-        url: 'http://zdev.dian.so/invoice/validate/autoUpload',
-        headers: form.getHeaders(),
-        // adapter: adapters,
-        data: form,
+    let formData = {
+      file,
+      nickName
+    }
+    setFileLogResult({path, message: '发票识别中'})
+    rp({
+      method: 'POST',
+      headers: form.getHeaders(),
+      uri: 'http://zdev.dian.so/invoice/validate/autoUpload',
+      formData: formData,
+      json: true
     }).then(res => {
-      console.warn(res)
-      return setFileLogResult({path})
-    }).catch(err => {
-      console.warn(err)
-      setFileLogResult({path, message: err.message})
+      this.successRes(res)
+      .then(result => {
+        setFileLogResult({path, message: result})
+      })
+      .catch(result => {
+        setFileLogResult({path, message: result.message})
+      })
+    })
+    .catch(err => {
+      this.errorRes(err).catch(result => {
+        setFileLogResult({path, message: result.message})
+      })
+    })
+
+    // axios({
+    //     method: 'post',
+    //     url: 'http://zdev.dian.so/invoice/validate/autoUpload',
+    //     headers: form.getHeaders(),
+    //     data: form,
+    // }).then(res => {
+    //   console.warn(res)
+    //   return setFileLogResult({path})
+    // }).catch(err => {
+    //   console.warn(err)
+    //   setFileLogResult({path, message: err.message})
+    // })
+  }
+
+  successRes (data) {
+    return new Promise((resolve, reject) => {
+      const defaultError = {
+        message: '未知错误',
+        code: -1
+      }
+      if (!data) reject(defaultError)
+      if (!data.success) {
+        const error = {
+          message: data.msg,
+          code: data.state
+        }
+        reject(error)
+      }
+      resolve(data.data) 
+    })
+  }
+
+  errorRes (err) {
+    console.warn(err)
+    return new Promise((resolve, reject) => {
+      if (err.code === 'ECONNABORTED') {
+        const error = {
+          message: '请求超时',
+          code: err.code
+        }
+        reject(error)
+      }
+      if (err.response) {
+        const error = {
+          message: errorMsgMap[err.response.status],
+          code: err.code
+        }
+        reject(error)
+      } else {
+        reject(err.message)
+      }
     })
   }
 

@@ -1,13 +1,13 @@
 import axios from 'axios'
-// const adapters2 = require('axios/lib/adapters/http')
-axios.defaults.adapter = require('axios/lib/adapters/http')
-// function requestErrorMsg (desc) {
-//   store.dispatch.global.notify({
-//     message: '请求错误',
-//     type: 'error',
-//     description: desc
-//   })
-// }
+// axios.defaults.adapter = require('axios/lib/adapters/http')
+axios.defaults.adapter = function(config) {
+  return require('axios/lib/adapters/http.js'); // always use Node.js adapter
+}()
+// console.warn(function(config) {
+//   return require('axios/lib/adapters/http.js'); // always use Node.js adapter
+// }())
+// axios.defaults.adapter = require('axios-http-adapter')
+
 
 const errorMsgMap = {
   404: '请求地址有误。',
@@ -65,7 +65,6 @@ function errorRes (err) {
   } else {
     throw err.message
   }
-  // throw err
 }
 
 const instance = axios.create({

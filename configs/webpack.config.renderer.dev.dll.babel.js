@@ -69,6 +69,6 @@ export default merge.smart(baseConfig, {
           path: path.join(__dirname, '..', 'dll')
         }
       }
-    })
+    }),
   ]
 });

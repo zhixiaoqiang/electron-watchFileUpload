@@ -43,10 +43,5 @@ export default {
     }),
 
     new webpack.NamedModulesPlugin(),
-    new webpack.NormalModuleReplacementPlugin(
-      /lib\/adapter\/xhr\.js/,
-      'lib/adapter/http.js'
-    )
-  ],
-  target: 'node'
+  ]
 };
