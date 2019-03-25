@@ -1,12 +1,14 @@
+/* eslint-disable class-methods-use-this */
+/* eslint-disable promise/always-return */
 /* eslint-disable react/prop-types */
 import React, { Component } from 'react'
 import { remote } from 'electron'
 import chokidar from 'chokidar'
-import adapters from 'axios/lib/adapters/http'
+// import adapters from 'axios/lib/adapters/http'
 import fs from 'fs-extra'
 import FormData from 'form-data'
 import Button from '@material-ui/core/Button';
-import axios from '../utils/axios'
+// import axios from '../utils/axios'
 import rp from 'request-promise'
 import Table from './table';
 import Input from './input';
@@ -128,7 +130,7 @@ export default class Home extends Component {
   }
   
   startHandle (e) {
-    let { nickName } = this.state
+    const { nickName } = this.state
     if (!nickName) {
       return this.setState({
         showStartModal: true
@@ -194,7 +196,7 @@ export default class Home extends Component {
     // 注意：axios参数传form rp参数产formData
     form.append('file', file)
     form.append('nickName', nickName)
-    let formData = {
+    const formData = {
       file,
       nickName
     }
@@ -203,7 +205,7 @@ export default class Home extends Component {
       method: 'POST',
       headers: form.getHeaders(),
       uri: 'http://zdev.dian.so/invoice/validate/autoUpload',
-      formData: formData,
+      formData,
       json: true
     }).then(res => {
       this.successRes(res)
@@ -253,7 +255,11 @@ export default class Home extends Component {
   }
 
   errorRes (err) {
-    console.warn(err)
+    const errorMsgMap = {
+      404: '请求地址有误。',
+      500: '服务器错误。',
+      502: '网关错误。'
+    }
     return new Promise((resolve, reject) => {
       if (err.code === 'ECONNABORTED') {
         const error = {
