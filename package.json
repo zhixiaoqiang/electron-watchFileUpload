@@ -57,7 +57,7 @@
   },
   "main": "./app/main.prod.js",
   "build": {
-    "productName": "ElectronReact",
+    "productName": "小电OCR发票",
     "appId": "org.develar.ElectronReact",
     "files": [
       "app/dist/",
