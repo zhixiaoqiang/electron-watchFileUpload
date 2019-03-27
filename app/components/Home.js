@@ -204,7 +204,7 @@ export default class Home extends Component {
     rp({
       method: 'POST',
       headers: form.getHeaders(),
-      uri: 'http://zdev.dian.so/invoice/validate/autoUpload',
+      uri: 'http://z.dian.so/invoice/validate/autoUpload',
       formData,
       json: true
     }).then(res => {
