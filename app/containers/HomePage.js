@@ -6,7 +6,6 @@ import * as FileLogActions from '../actions/fileLog';
 import Home from '../components/Home';
 
 class HomePage extends Component {
-
   render() {
     return <Home {...this.props} />;
   }

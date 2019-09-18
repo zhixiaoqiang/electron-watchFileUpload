@@ -1,16 +1,13 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import { render } from 'react-dom';
-import { AppContainer } from 'react-hot-loader';
-// import es6promise from 'es6-promise'
+import { AppContainer as ReactHotAppContainer } from 'react-hot-loader';
 import Root from './containers/Root';
 import { configureStore, history } from './store/configureStore';
 import './app.global.css';
-require('axios/lib/adapters/http')
-
-
-// es6promise.polyfill()
 
 const store = configureStore();
+
+const AppContainer = process.env.PLAIN_HMR ? Fragment : ReactHotAppContainer;
 
 render(
   <AppContainer>
@@ -18,16 +15,3 @@ render(
   </AppContainer>,
   document.getElementById('root')
 );
-
-if (module.hot) {
-  module.hot.accept('./containers/Root', () => {
-    // eslint-disable-next-line global-require
-    const NextRoot = require('./containers/Root').default;
-    render(
-      <AppContainer>
-        <NextRoot store={store} history={history} />
-      </AppContainer>,
-      document.getElementById('root')
-    );
-  });
-}

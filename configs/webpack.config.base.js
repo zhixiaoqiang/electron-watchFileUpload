@@ -42,6 +42,6 @@ export default {
       NODE_ENV: 'production'
     }),
 
-    new webpack.NamedModulesPlugin(),
+    new webpack.NamedModulesPlugin()
   ]
 };

@@ -18,18 +18,20 @@ const styles = theme => ({
     maxHeight: '600px'
   },
   table: {
-    minWidth: 700,
-  },
+    minWidth: 700
+  }
 });
 
 function SimpleTable(props) {
   const { classes, data } = props;
 
   // eslint-disable-next-line prefer-const
-  let rows = data && data.map((item, i) => ({
-    i,
-    ...item
-  }))
+  let rows =
+    data &&
+    data.map((item, i) => ({
+      i,
+      ...item
+    }));
 
   return (
     <Paper className={classes.root}>
@@ -44,7 +46,12 @@ function SimpleTable(props) {
         <TableBody>
           {rows.map(row => (
             <TableRow key={row.i}>
-              <TableCell component="th" scope="row" align="center" style={{color: row.color}}>
+              <TableCell
+                component="th"
+                scope="row"
+                align="center"
+                style={{ color: row.color }}
+              >
                 {row.state}
               </TableCell>
               <TableCell align="center">{row.text}</TableCell>
@@ -58,7 +65,7 @@ function SimpleTable(props) {
 }
 
 SimpleTable.propTypes = {
-  classes: PropTypes.object.isRequired,
+  classes: PropTypes.object.isRequired
 };
 
 export default withStyles(styles)(SimpleTable);

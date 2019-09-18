@@ -9,7 +9,14 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 
 class AlertDialog extends React.Component {
   render() {
-    const { open = false, handleClose, children, title, onOk, okText } = this.props
+    const {
+      open = false,
+      handleClose,
+      children,
+      title,
+      onOk,
+      okText
+    } = this.props;
     return (
       <div>
         <Dialog

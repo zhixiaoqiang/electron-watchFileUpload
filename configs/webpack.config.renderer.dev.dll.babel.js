@@ -24,7 +24,7 @@ export default merge.smart(baseConfig, {
 
   target: 'electron-renderer',
 
-  externals: ['fsevents', 'crypto-browserify', 'axios'],
+  externals: ['fsevents', 'crypto-browserify'],
 
   /**
    * Use `module` from `webpack.config.renderer.dev.js`
@@ -69,6 +69,6 @@ export default merge.smart(baseConfig, {
           path: path.join(__dirname, '..', 'dll')
         }
       }
-    }),
+    })
   ]
 });

@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
-import InputLabel from '@material-ui/core/InputLabel'
-import InputBase from '@material-ui/core/InputBase'
+import InputLabel from '@material-ui/core/InputLabel';
+import InputBase from '@material-ui/core/InputBase';
 
 // import TextField from '@material-ui/core/TextField'
 
@@ -27,26 +27,22 @@ const Input = withStyles(theme => ({
       'sans-serif',
       '"Apple Color Emoji"',
       '"Segoe UI Emoji"',
-      '"Segoe UI Symbol"',
+      '"Segoe UI Symbol"'
     ].join(','),
     '&:focus': {
       borderRadius: 4,
       borderColor: '#80bdff',
-      boxShadow: '0 0 0 0.2rem rgba(0,123,255,.25)',
-    },
-  },
+      boxShadow: '0 0 0 0.2rem rgba(0,123,255,.25)'
+    }
+  }
 }))(InputBase);
 
-export default function (props) {
-  const { label, onChange, disabled, value } = props
+export default function(props) {
+  const { label, onChange, disabled, value } = props;
   return (
-    <InputLabel htmlFor="age-customized-select" >
+    <InputLabel htmlFor="age-customized-select">
       {label}：
-      <Input
-        value={value}
-        disabled={disabled}
-        onChange={onChange}
-      />
+      <Input value={value} disabled={disabled} onChange={onChange} />
       {/* <TextField
         id="outlined-name"
         label="Name"
@@ -57,5 +53,5 @@ export default function (props) {
         variant="outlined"
       /> */}
     </InputLabel>
-  )
+  );
 }
