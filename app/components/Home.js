@@ -4,16 +4,16 @@
 import React, { Component } from 'react'
 import { remote } from 'electron'
 import chokidar from 'chokidar'
-// import adapters from 'axios/lib/adapters/http'
-import fs from 'fs-extra'
+// import fs from 'fs-extra'
 import FormData from 'form-data'
 import Button from '@material-ui/core/Button';
-// import axios from '../utils/axios'
 import rp from 'request-promise'
+import canvas2Buffer from '../utils/canvas2buffer'
 import Table from './table';
 import Input from './input';
 import Modal from './modal';
 import styles from './Home.css'
+
 
 export default class Home extends Component {
   constructor (props) {
@@ -45,7 +45,7 @@ export default class Home extends Component {
         ignored: /[\/\\]\./,
         persistent: true
     });
-  
+
     const onWatcherReady = () => {
         console.info('From here can you check for real changes, the initial scan has been completed.');
         curThis.showInLogFlag = true;
@@ -54,7 +54,7 @@ export default class Home extends Component {
           messageLogger: `正在监听 ${path} 文件夹`
         })
     }
-  
+
     curThis.watcher
     .on('add', (path, event) => {
         if(curThis.showInLogFlag){
@@ -68,7 +68,7 @@ export default class Home extends Component {
     })
     .on('addDir', (path) => {
           console.log('Directory', path, 'has been added');
-  
+
           if(curThis.showInLogFlag){
               curThis.addLog({
                 typeStr: '新增文件夹',
@@ -79,7 +79,7 @@ export default class Home extends Component {
     })
     .on('change', (path) => {
         console.log('File', path, 'has been changed');
-  
+
         if(curThis.showInLogFlag){
             // curThis.addLog({
             //   typeStr: '文件变更',
@@ -90,7 +90,7 @@ export default class Home extends Component {
     })
     .on('unlink', (path) => {
         console.log('File', path, 'has been removed');
-  
+
         if(curThis.showInLogFlag){
             // curThis.addLog({
             //   typeStr: '删除文件',
@@ -101,7 +101,7 @@ export default class Home extends Component {
     })
     .on('unlinkDir', (path) => {
         console.log('Directory', path, 'has been removed');
-  
+
         if(curThis.showInLogFlag){
             curThis.addLog({
               typeStr: '删除文件夹',
@@ -112,7 +112,7 @@ export default class Home extends Component {
     })
     .on('error', (error) => {
         console.log('Error happened', error);
-  
+
         if(curThis.showInLogFlag){
             curThis.addLog({
               typeStr: '文件错误',
@@ -128,7 +128,7 @@ export default class Home extends Component {
         // console.log('Raw event info:', event, path, details);
     });
   }
-  
+
   startHandle (e) {
     const { nickName } = this.state
     if (!nickName) {
@@ -149,7 +149,7 @@ export default class Home extends Component {
         }
     });
   }
-  
+
   stopHandle (e) {
     e.stopPropagation();
     if(!this.watcher){
@@ -163,11 +163,12 @@ export default class Home extends Component {
         })
     }
   }
-  
+
   resetHandle () {
-    this.props.resetFileLog()
+    const { resetFileLog } = this.props
+    resetFileLog()
   }
-  
+
   // 添加日志
   addLog ({ typeStr, type, path }) {
     // eslint-disable-next-line prefer-const
@@ -187,27 +188,66 @@ export default class Home extends Component {
     }
     setFileLog(curLog)
   }
-  
-  uploadFile (path) {
+
+  getCompressFile (path) {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      const img = document.createElement('img')
+      img.src = path
+      // const file = ''
+      img.onload = () => {
+        ctx.canvas.width = img.width
+        ctx.canvas.height = img.height
+    
+        ctx.drawImage(img, 0, 0, img.width, img.height)
+        canvas.toBlob((blob) => {
+          const file = new File([blob], path, { lastModified: new Date().getTime(), type: 'image/jpeg' })
+          resolve(file)
+        }, 'image/jpeg', 0.1)
+      }
+    })
+  }
+
+  async uploadFile (path) {
     const { nickName } = this.state
     const { setFileLogResult } = this.props
     const form = new FormData()
-    const file = fs.createReadStream(path)
-    // 注意：axios参数传form rp参数产formData
-    form.append('file', file)
-    form.append('nickName', nickName)
+    // const file = await this.getCompressFile(path)
+    // const file = await fs.createReadStream(path)
+    const file = await canvas2Buffer(path, 'image/jpeg', 0.1)
+    console.warn(file)
+    // form.append('name', name)
+    console.warn(form)
+    // form.append('nickName', nickName)
+    // form.append('file', file);
+
     const formData = {
       file,
+      name: nickName,
       nickName
     }
+
     setFileLogResult({path, message: '发票识别中'})
+
+    console.warn(rp({
+      method: 'POST',
+      headers: form.getHeaders(),
+      uri: 'http://zdocker6.dian.so/invoice/validate/autoUpload',
+      formData,
+      // body: formData,
+      json: true
+    }))
+
     rp({
       method: 'POST',
       headers: form.getHeaders(),
-      uri: 'http://z.dian.so/invoice/validate/autoUpload',
+      uri: 'http://zdocker6.dian.so/invoice/validate/autoUpload',
       formData,
+      // body: formData,
       json: true
     }).then(res => {
+      console.warn(res)
       this.successRes(res)
       .then(result => {
         setFileLogResult({path, message: result})
@@ -221,19 +261,6 @@ export default class Home extends Component {
         setFileLogResult({path, message: result.message})
       })
     })
-
-    // axios({
-    //     method: 'post',
-    //     url: 'http://zdev.dian.so/invoice/validate/autoUpload',
-    //     headers: form.getHeaders(),
-    //     data: form,
-    // }).then(res => {
-    //   console.warn(res)
-    //   return setFileLogResult({path})
-    // }).catch(err => {
-    //   console.warn(err)
-    //   setFileLogResult({path, message: err.message})
-    // })
   }
 
   successRes (data) {
@@ -250,7 +277,7 @@ export default class Home extends Component {
         }
         reject(error)
       }
-      resolve(data.data) 
+      resolve(data.data)
     })
   }
 
